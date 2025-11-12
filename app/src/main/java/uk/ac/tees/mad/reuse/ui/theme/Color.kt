@@ -2,10 +2,18 @@ package uk.ac.tees.mad.reuse.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Light Theme Colors
+val GreenPrimaryLight = Color(0xFF4CAF50)      // Primary - Eco Green
+val GreenPrimaryVariantLight = Color(0xFF388E3C) // Primary Variant - Darker Green
+val YellowSecondaryLight = Color(0xFFFFC107)     // Secondary - Warm Yellow
+val BackgroundLight = Color(0xFFF1F8E9)          // Light eco background
+val SurfaceLight = Color(0xFFFFFFFF)             // Primary white surface
+val ErrorLight = Color(0xFFD32F2F)               // Error Red
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Dark Theme Colors
+val GreenPrimaryDark = Color(0xFF81C784)         // Primary - Lightened Green for contrast
+val GreenPrimaryVariantDark = Color(0xFF66BB6A)  // Primary Variant
+val YellowSecondaryDark = Color(0xFFFFD54F)      // Secondary - Muted Yellow
+val BackgroundDark = Color(0xFF1B1B1B)           // Dark background
+val SurfaceDark = Color(0xFF121212)              // Dark surface
+val ErrorDark = Color(0xFFEF5350)                // Error Red for dark mode
