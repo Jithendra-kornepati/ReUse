@@ -3,8 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
-    id("com.google.dagger.hilt.android") version "2.57.2"
-    id("org.jetbrains.kotlin.kapt")
+    id("com.google.dagger.hilt.android")
+    kotlin("kapt")
 }
 
 
@@ -47,41 +47,38 @@ android {
 }
 
 dependencies {
-    // Use the Compose BOM from version catalog
+
+    implementation("com.cloudinary:cloudinary-android:3.1.2")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+    implementation("androidx.navigation:navigation-compose:2.8.0")
+    implementation("androidx.room:room-runtime:2.7.0-alpha05")
+    kapt("androidx.room:room-compiler:2.7.0-alpha05")
+    implementation("androidx.room:room-ktx:2.7.0-alpha05")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.8.8")
+    implementation("io.ktor:ktor-client-okhttp:2.3.3")
+    implementation("androidx.compose.material3:material3:1.3.2")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("com.google.dagger:hilt-android:2.57.2")
+    kapt("com.google.dagger:hilt-compiler:2.57.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation(platform(libs.androidx.compose.bom))
 
     // Compose UI
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.material3)
-    implementation("androidx.compose.material:material-icons-extended")
 
-    // Tooling
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // Activity + Compose
     implementation(libs.androidx.activity.compose)
 
-    // Lifecycle / ViewModel Compose
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
 
-    // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.9.5")
-
-    // Room
-    implementation("androidx.room:room-runtime:2.7.1")
-    implementation("androidx.room:room-ktx:2.7.1")
-    kapt("androidx.room:room-compiler:2.7.1")
-
-    // Hilt
-    implementation("com.google.dagger:hilt-android:2.57.2")
-    kapt("com.google.dagger:hilt-android-compiler:2.57.2")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-
-    // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
