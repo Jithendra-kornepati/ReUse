@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import dagger.hilt.android.AndroidEntryPoint
+import uk.ac.tees.mad.reuse.presentation.auth.AuthScreen
 import uk.ac.tees.mad.reuse.presentation.splash.SplashScreen
 import uk.ac.tees.mad.reuse.ui.theme.ReUseTheme
 
@@ -23,7 +24,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ReUseTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SplashScreen()
+                    AuthScreen()
                 }
             }
         }
