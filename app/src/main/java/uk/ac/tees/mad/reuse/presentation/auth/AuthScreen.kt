@@ -17,11 +17,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import uk.ac.tees.mad.reuse.GenericVM
 import uk.ac.tees.mad.reuse.R
 
 
 @Composable
-fun AuthScreen() {
+fun AuthScreen(genericVM: GenericVM = hiltViewModel()) {
     var isLogin by remember { mutableStateOf(true) }
 
     Surface(
