@@ -10,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -18,13 +18,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import uk.ac.tees.mad.reuse.GenericVM
 import uk.ac.tees.mad.reuse.R
 
 
 @Composable
-fun AuthScreen(genericVM: GenericVM = hiltViewModel()) {
+fun AuthScreen(vm: AuthViewmodel = hiltViewModel()) {
     var isLogin by remember { mutableStateOf(true) }
+    val context = LocalContext.current
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -61,7 +61,16 @@ fun AuthScreen(genericVM: GenericVM = hiltViewModel()) {
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (isLogin) LoginForm() else SignupForm()
+            if (isLogin) LoginForm(onLogin = { ema, pas ->
+                vm.loginUser(context = context, email = ema, password = pas, onSucess = {
+
+                })
+            }) else SignupForm( onSignup = {
+                fullName, ema, pas ->
+                vm.registerUser(context = context, fullName = fullName, email = ema, password = pas, onSucess = {
+
+                })
+            })
 
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -75,7 +84,7 @@ fun AuthScreen(genericVM: GenericVM = hiltViewModel()) {
 }
 
 @Composable
-fun LoginForm() {
+fun LoginForm(onLogin : (String, String) -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -113,7 +122,7 @@ fun LoginForm() {
 
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = { /* TODO: Firebase Login */ },
+            onClick = {onLogin(email, password) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
@@ -126,7 +135,7 @@ fun LoginForm() {
 }
 
 @Composable
-fun SignupForm() {
+fun SignupForm( onSignup: (String, String, String) -> Unit) {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -173,7 +182,7 @@ fun SignupForm() {
 
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = { /* TODO: Firebase Signup */ },
+            onClick = { onSignup(fullName, email, password) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),

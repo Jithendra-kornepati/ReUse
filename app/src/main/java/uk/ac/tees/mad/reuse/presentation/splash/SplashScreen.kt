@@ -18,27 +18,26 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import uk.ac.tees.mad.reuse.R
+import uk.ac.tees.mad.reuse.presentation.auth.AuthViewmodel
 import uk.ac.tees.mad.reuse.ui.theme.Typography
 
 @Composable
 fun SplashScreen(
-    //navController: NavController,
-    //viewModel: SplashViewModel = viewModel()
+    navController: NavController,
+    viewModel: AuthViewmodel = viewModel()
 ) {
-    //val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = true) {
-        //viewModel.initialize()
-        delay(2500) // Minimum time for splash screen
-//        if (uiState.isLoggedIn) {
-//            navController.navigate("home") {
-//                popUpTo("splash") { inclusive = true }
-//            }
-//        } else {
-//            navController.navigate("auth") {
-//                popUpTo("splash") { inclusive = true }
-//            }
-//        }
+        delay(2500)
+        if (viewModel.loggedIn) {
+            navController.navigate("home") {
+                popUpTo("splash") { inclusive = true }
+            }
+        } else {
+            navController.navigate("auth") {
+                popUpTo("splash") { inclusive = true }
+            }
+        }
     }
 
     SplashContent(
