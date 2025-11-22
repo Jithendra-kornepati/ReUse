@@ -1,3 +1,4 @@
+// GenericVm.kt
 package uk.ac.tees.mad.reuse
 
 import android.util.Log
@@ -24,92 +25,141 @@ class GenericVm @Inject constructor(
 
     private val _homeUiState = MutableStateFlow(HomeUiState())
     val homeUiState = _homeUiState.asStateFlow()
-    // endregion
 
-    private val _messages = MutableStateFlow<List<Message>>(emptyList())
-    val messages = _messages.asStateFlow()
-
-    /** Called when user types a new query **/
     fun onQueryChanged(newQuery: String) {
         _homeUiState.value = _homeUiState.value.copy(query = newQuery)
     }
 
-    /** Fetch reuse ideas for current query **/
+    /**
+     * Stream from Gemini into a single accumulating ReuseIdea.
+     * - Show a single card that is progressively filled.
+     * - After streaming completes, parse steps (simple heuristics).
+     * - Only then isLoading = false and TryAnother becomes visible.
+     */
     fun fetchReuseIdeas() {
-        val currentQuery = _homeUiState.value.query.trim()
-        if (currentQuery.isEmpty()) return
+        val query = _homeUiState.value.query.trim()
+        if (query.isEmpty()) return
 
         viewModelScope.launch {
+            _homeUiState.value = _homeUiState.value.copy(isLoading = true, error = null)
+
             try {
-                _homeUiState.value = _homeUiState.value.copy(isLoading = true, error = null)
+                // Create an accumulating idea with a stable id (timestamp-based for now)
+                val id = System.currentTimeMillis().toString()
+                val accumulating = ReuseIdea(
+                    id = id,
+                    title = "Ideas for \"$query\"",
+                    description = "",
+                    steps = emptyList()
+                )
 
-                val results = mutableListOf<ReuseIdea>()
+                // Put the accumulating idea into state so UI shows it immediately and updates progressively
+                _homeUiState.value = _homeUiState.value.copy(ideas = listOf(accumulating))
 
-                genericRepo.generateText(prompt = "Creative ways to reuse $currentQuery").collect { chunk ->
-                    if (chunk != null) {
-                        val idea = ReuseIdea(
-                            title = "$currentQuery Idea",
-                            description = chunk.take(150) + "...",
-                            steps = listOf("Step 1: Analyze the object", "Step 2: Reuse it creatively")
-                        )
-                        results.add(idea)
-                        _homeUiState.value = _homeUiState.value.copy(ideas = results)
+                // Accumulate chunks into a StringBuilder
+                val sb = StringBuilder()
+
+                genericRepo.generateText(prompt = "Give several creative reuse ideas for: $query. Provide numbered steps and short descriptions. Use numbered lists.")
+                    .collect { chunk ->
+                        if (chunk == null) return@collect
+                        sb.append(chunk)
+
+                        // update the accumulating idea while streaming so UI sees partial content
+                        val current = _homeUiState.value.ideas.toMutableList()
+                        if (current.isEmpty()) {
+                            current.add(accumulating.copy(description = sb.toString()))
+                        } else {
+                            val first = current[0]
+                            current[0] = first.copy(description = sb.toString())
+                        }
+                        _homeUiState.value = _homeUiState.value.copy(ideas = current)
                     }
-                }
 
-                // Cache successful response locally (Room integration later)
-                // repository.saveIdeasToCache(currentQuery, results)
+                // When stream ends, parse the final text into structured steps if possible
+                val finalText = sb.toString()
+                val parsed = parseIdeas(finalText)
 
+                // Replace accumulating idea with parsed ideas (prefer structured list; fallback to single)
+                val finalIdeas = if (parsed.isNotEmpty()) parsed else listOf(accumulating.copy(description = finalText))
+
+                // TODO: persist finalIdeas to Room (cache) and update popularity metrics
+
+                _homeUiState.value = _homeUiState.value.copy(ideas = finalIdeas, isLoading = false)
             } catch (e: Exception) {
-                Log.e("GenericVm", "Error fetching ideas", e)
-                _homeUiState.value = _homeUiState.value.copy(error = e.message ?: "Unknown error")
-            } finally {
-                _homeUiState.value = _homeUiState.value.copy(isLoading = false)
+                Log.e("GenericVm", "fetchReuseIdeas error", e)
+                _homeUiState.value = _homeUiState.value.copy(error = e.message ?: "Unknown error", isLoading = false)
             }
         }
     }
 
-    /** Fetch next idea for same query (Try Another) **/
     fun fetchNextIdea() {
-        val query = _homeUiState.value.query
-        if (query.isEmpty()) return
+        // Simple retry / new generation for same query
+        if (_homeUiState.value.query.isBlank()) return
         fetchReuseIdeas()
     }
 
-    /** Save idea locally or to Firestore **/
     fun saveIdea(idea: ReuseIdea) {
         viewModelScope.launch {
             try {
-                // TODO: Save to Room + Firestore
-                Log.d("GenericVm", "Saved idea: ${idea.title}")
+                // TODO: persist to Room + Firestore via repository
+                Log.d("GenericVm", "saveIdea: ${idea.id}")
             } catch (e: Exception) {
-                Log.e("GenericVm", "Failed to save idea", e)
+                Log.e("GenericVm", "saveIdea failed", e)
             }
         }
     }
 
-    // Optional Chat Interface for AI Interactions
-    fun generateText(prompt: String) {
-        viewModelScope.launch {
-            _messages.value = _messages.value + Message.User(prompt)
-            _messages.value = _messages.value + Message.Assistant("")
+    /**
+     * Parse the raw multi-idea text into a list of ReuseIdea objects.
+     * Heuristics:
+     *  - Split by common separators (double newlines + headings)
+     *  - For each block, take the first line as title, remaining as description
+     *  - Extract numbered/dash lines as steps
+     */
+    private fun parseIdeas(text: String): List<ReuseIdea> {
+        if (text.isBlank()) return emptyList()
 
-            genericRepo.generateText(prompt = prompt).collect { chunk ->
-                if (chunk != null) {
-                    val updated = _messages.value.toMutableList()
-                    val last = updated.last() as Message.Assistant
-                    updated[updated.size - 1] = last.copy(text = last.text + chunk)
-                    _messages.value = updated
-                } else {
-                    Log.e("GenericVm", "Error in stream")
+        // Split into blocks by two or more newlines (commonly separate ideas)
+        val blocks = text.split(Regex("\\n{2,}")).map { it.trim() }.filter { it.isNotEmpty() }
+
+        val ideas = mutableListOf<ReuseIdea>()
+        var counter = 0
+        for (b in blocks) {
+            counter++
+            val lines = b.split(Regex("\\r?\\n")).map { it.trim() }.filter { it.isNotEmpty() }
+            if (lines.isEmpty()) continue
+
+            // title: first line if short, otherwise generate a title
+            val first = lines.first()
+            val title = if (first.length <= 60 && (first.contains(":") || first.matches(Regex("^\\d+\\.|^-|^•")) || first.contains("-"))) {
+                // it might be a step or numbered header; create a synthetic title
+                "Idea $counter"
+            } else {
+                first
+            }
+
+            // description: remaining lines joined until a numbered list starts
+            val remaining = if (lines.size > 1) lines.subList(1, lines.size) else emptyList()
+
+            // steps: extract lines that look like steps
+            val steps = remaining.mapNotNull { line ->
+                val numMatch = Regex("""^\s*\d+\.\s*(.+)""").find(line)
+                val dashMatch = Regex("""^\s*[-•]\s*(.+)""").find(line)
+                when {
+                    numMatch != null -> numMatch.groupValues[1].trim()
+                    dashMatch != null -> dashMatch.groupValues[1].trim()
+                    line.startsWith("Step", ignoreCase = true) -> line
+                    else -> null
                 }
             }
-        }
-    }
-}
 
-// Sealed class for message types
-sealed class Message {
-    data class User(val text: String) : Message()
-    data class Assistant(val text: String) : Message()
+            val description = remaining
+                .filter { line -> !Regex("""^\s*(\d+\.|[-•]|Step)""").containsMatchIn(line) }
+                .joinToString("\n")
+
+            ideas.add(ReuseIdea(id = System.currentTimeMillis().toString() + counter, title = title, description = description, steps = steps))
+        }
+
+        return ideas
+    }
 }
