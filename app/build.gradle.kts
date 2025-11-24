@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
+    id("org.jetbrains.kotlin.plugin.serialization") // 👈 ADD THIS
     id("com.google.dagger.hilt.android")
     kotlin("kapt")
     alias(libs.plugins.google.gms.google.services)
@@ -48,6 +48,7 @@ android {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
     implementation("com.cloudinary:cloudinary-android:3.1.2")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")

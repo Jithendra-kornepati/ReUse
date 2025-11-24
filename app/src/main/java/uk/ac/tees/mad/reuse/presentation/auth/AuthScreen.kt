@@ -18,11 +18,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import uk.ac.tees.mad.reuse.R
 
 
 @Composable
-fun AuthScreen(vm: AuthViewmodel = hiltViewModel()) {
+fun AuthScreen(navController: NavController, vm: AuthViewmodel) {
     var isLogin by remember { mutableStateOf(true) }
     val context = LocalContext.current
 

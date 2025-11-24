@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import uk.ac.tees.mad.reuse.data.local.ReuseIdea
 import uk.ac.tees.mad.reuse.data.repository.GeminiRepository
 import javax.inject.Inject
@@ -24,75 +26,76 @@ class GenericVm @Inject constructor(
 
     private val _homeUiState = MutableStateFlow(HomeUiState())
     val homeUiState = _homeUiState.asStateFlow()
-    // endregion
 
-    private val _messages = MutableStateFlow<List<Message>>(emptyList())
-    val messages = _messages.asStateFlow()
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    }
 
-    /** Called when user types a new query **/
     fun onQueryChanged(newQuery: String) {
         _homeUiState.value = _homeUiState.value.copy(query = newQuery)
     }
 
-    /** Fetch reuse ideas for current query **/
     fun fetchReuseIdeas() {
-        val currentQuery = _homeUiState.value.query.trim()
-        if (currentQuery.isEmpty()) return
+        val query = _homeUiState.value.query.trim()
+        if (query.isEmpty()) return
 
         viewModelScope.launch {
+            _homeUiState.value = _homeUiState.value.copy(isLoading = true, error = null)
+
             try {
-                _homeUiState.value = _homeUiState.value.copy(isLoading = true, error = null)
-
-                val results = mutableListOf<ReuseIdea>()
-
-                genericRepo.generateText(prompt = "Creative ways to reuse $currentQuery").collect { chunk ->
-                    if (chunk != null) {
-                        val idea = ReuseIdea(
-                            title = "$currentQuery Idea",
-                            description = chunk.take(150) + "...",
-                            steps = listOf("Step 1: Analyze the object", "Step 2: Reuse it creatively")
-                        )
-                        results.add(idea)
-                        _homeUiState.value = _homeUiState.value.copy(ideas = results)
+                val prompt = """
+                    You are a sustainability assistant. 
+                    Return a JSON array of creative reuse ideas for the item: "$query".
+                    Each object must have:
+                    {
+                      "title": "Short title for the reuse idea",
+                      "description": "2–3 sentence description explaining how it helps reuse the item",
+                      "steps": ["Step 1...", "Step 2...", "Step 3..."]
                     }
+                    Rules:
+                    - Respond with ONLY valid JSON.
+                    - Do not include markdown, explanations, or any text outside the JSON.
+                """.trimIndent()
+
+                var rawResponse = ""
+
+                genericRepo.generateText(prompt).collect { chunk ->
+                    if (chunk != null) rawResponse += chunk
                 }
 
-                Log.d("GenericVm", "Fetched ideas: $results")
+                // Clean possible whitespace or artifacts
+                val cleaned = rawResponse
+                    .substringAfter("[")
+                    .substringBeforeLast("]")
+                    .let { "[$it]" } // ensure valid JSON array format
 
-
-                // Cache successful response locally (Room integration later)
-                // repository.saveIdeasToCache(currentQuery, results)
+                val ideas = json.decodeFromString<List<ReuseIdea>>(cleaned)
+                _homeUiState.value = _homeUiState.value.copy(ideas = ideas, isLoading = false)
+                Log.d("GenericVm", "Parsed ${ideas.size} ideas successfully")
 
             } catch (e: Exception) {
-                Log.e("GenericVm", "Error fetching ideas", e)
-                _homeUiState.value = _homeUiState.value.copy(error = e.message ?: "Unknown error")
-            } finally {
-                _homeUiState.value = _homeUiState.value.copy(isLoading = false)
+                Log.e("GenericVm", "JSON parse failed", e)
+                _homeUiState.value = _homeUiState.value.copy(
+                    error = "Failed to parse response. Try again.",
+                    isLoading = false
+                )
             }
         }
     }
 
-    /** Fetch next idea for same query (Try Another) **/
     fun fetchNextIdea() {
-        val query = _homeUiState.value.query
-        if (query.isEmpty()) return
-        fetchReuseIdeas()
+        if (_homeUiState.value.query.isNotBlank()) fetchReuseIdeas()
     }
 
-    /** Save idea locally or to Firestore **/
     fun saveIdea(idea: ReuseIdea) {
         viewModelScope.launch {
             try {
-                // TODO: Save to Room + Firestore
+                // TODO: Implement Firestore + Room save logic
                 Log.d("GenericVm", "Saved idea: ${idea.title}")
             } catch (e: Exception) {
-                Log.e("GenericVm", "Failed to save idea", e)
+                Log.e("GenericVm", "Save failed", e)
             }
         }
     }
-}
-
-sealed class Message {
-    data class User(val text: String) : Message()
-    data class Assistant(val text: String) : Message()
 }
