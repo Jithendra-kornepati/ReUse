@@ -18,23 +18,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import uk.ac.tees.mad.reuse.R
+import uk.ac.tees.mad.reuse.Routes
 import uk.ac.tees.mad.reuse.presentation.auth.AuthViewmodel
 import uk.ac.tees.mad.reuse.ui.theme.Typography
 
 @Composable
 fun SplashScreen(
     navController: NavController,
-    viewModel: AuthViewmodel = viewModel()
+    viewModel: AuthViewmodel
 ) {
 
     LaunchedEffect(key1 = true) {
         delay(2500)
         if (viewModel.loggedIn) {
-            navController.navigate("home") {
+            navController.navigate(Routes.Home.route) {
                 popUpTo("splash") { inclusive = true }
             }
         } else {
-            navController.navigate("auth") {
+            navController.navigate(Routes.Auth.route) {
                 popUpTo("splash") { inclusive = true }
             }
         }

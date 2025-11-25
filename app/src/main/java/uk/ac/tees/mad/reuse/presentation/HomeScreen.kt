@@ -82,7 +82,6 @@ fun HomeScreen(
 
             when {
                 uiState.isLoading && uiState.ideas.isEmpty() -> {
-                    // no idea yet — full screen loader
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }

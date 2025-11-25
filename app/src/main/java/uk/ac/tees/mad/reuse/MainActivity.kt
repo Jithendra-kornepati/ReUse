@@ -52,19 +52,19 @@ sealed class Routes(val route: String) {
 fun ReUseApp() {
     val navController = rememberNavController()
     val json = Json { ignoreUnknownKeys = true }
-    //val authViewModel = hiltViewModel<AuthViewmodel>()
+    val authViewModel = hiltViewModel<AuthViewmodel>()
 
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
+    Scaffold(modifier = Modifier.fillMaxSize()) { i ->
         NavHost(navController = navController, startDestination = Routes.Splash.route) {
 
             composable(Routes.Splash.route) {
-                SplashScreen(navController = navController)
+                SplashScreen(navController = navController, authViewModel)
             }
 
-//            composable(Routes.Auth.route) {
-//                AuthScreen(navController = navController, authViewModel)
-//            }
+            composable(Routes.Auth.route) {
+                AuthScreen(navController = navController, authViewModel)
+            }
 
             composable(Routes.Home.route) {
                 HomeScreen(navController = navController)
