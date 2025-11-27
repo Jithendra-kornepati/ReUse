@@ -20,66 +20,78 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import uk.ac.tees.mad.reuse.R
+import uk.ac.tees.mad.reuse.Routes
 
 
 @Composable
 fun AuthScreen(navController: NavController, vm: AuthViewmodel) {
     var isLogin by remember { mutableStateOf(true) }
+    val isLoading = vm.loading.value
     val context = LocalContext.current
 
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.re_use_icon),
-                contentDescription = "ReUse Logo",
-                modifier = Modifier.size(100.dp).clip(
-                    RoundedCornerShape(24.dp)
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.re_use_icon),
+                    contentDescription = "ReUse Logo",
+                    modifier = Modifier.size(100.dp).clip(
+                        RoundedCornerShape(24.dp)
+                    )
                 )
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = if (isLogin) "Welcome Back!" else "Create Account",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = if (isLogin) "Login to continue your eco journey" else "Join us to reuse and recycle!",
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = if (isLogin) "Welcome Back!" else "Create Account",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = if (isLogin) "Login to continue your eco journey" else "Join us to reuse and recycle!",
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
 
-            if (isLogin) LoginForm(onLogin = { ema, pas ->
-                vm.loginUser(context = context, email = ema, password = pas, onSucess = {
-
+                if (isLogin) LoginForm(onLogin = { ema, pas ->
+                    vm.loginUser(context = context, email = ema, password = pas, onSucess = {
+                        navController.navigate(Routes.Home.route)
+                    })
+                }) else SignupForm(onSignup = { fullName, ema, pas ->
+                    vm.registerUser(
+                        context = context,
+                        fullName = fullName,
+                        email = ema,
+                        password = pas,
+                        onSucess = {
+                            navController.navigate(Routes.Home.route)
+                        })
                 })
-            }) else SignupForm( onSignup = {
-                fullName, ema, pas ->
-                vm.registerUser(context = context, fullName = fullName, email = ema, password = pas, onSucess = {
 
-                })
-            })
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = if (isLogin) "Don't have an account? Sign up" else "Already have an account? Login",
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { isLogin = !isLogin },
-                fontWeight = FontWeight.Medium
-            )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = if (isLogin) "Don't have an account? Sign up" else "Already have an account? Login",
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.clickable { isLogin = !isLogin },
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 }
