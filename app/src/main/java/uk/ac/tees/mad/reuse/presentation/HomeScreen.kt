@@ -107,16 +107,26 @@ fun HomeScreen(
                 uiState.ideas.isEmpty() -> EmptyState()
 
                 else -> {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         items(uiState.ideas) { idea ->
                             ReuseIdeaCard(
                                 idea = idea,
                                 onSave = { genericVm.saveIdea(idea) },
-                                onClick = { navController?.navigate("reuseDetail/${idea.id}") }
+                                onClick = {
+                                    val encoded = URLEncoder.encode(
+                                        Json.encodeToString(idea),
+                                        StandardCharsets.UTF_8.toString()
+                                    )
+                                    navController?.navigate(Routes.ReuseDetail.createRoute(encoded))
+                                }
                             )
                         }
                     }
                 }
+
             }
         }
     }

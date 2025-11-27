@@ -25,6 +25,8 @@ import uk.ac.tees.mad.reuse.presentation.auth.AuthViewmodel
 import uk.ac.tees.mad.reuse.presentation.detail.ReuseDetailScreen
 import uk.ac.tees.mad.reuse.presentation.splash.SplashScreen
 import uk.ac.tees.mad.reuse.ui.theme.ReUseTheme
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -75,7 +77,10 @@ fun ReUseApp() {
                 arguments = listOf(navArgument("ideaJson") { type = NavType.StringType })
             ) { backStackEntry ->
                 val encoded = backStackEntry.arguments?.getString("ideaJson")
-                val idea = encoded?.let { json.decodeFromString<ReuseIdea>(it) }
+                val idea = encoded?.let {
+                    val decoded = URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+                    json.decodeFromString<ReuseIdea>(decoded)
+                }
                 idea?.let {
                     ReuseDetailScreen(
                         idea = it,
@@ -83,6 +88,7 @@ fun ReUseApp() {
                     )
                 }
             }
+
         }
     }
 }
