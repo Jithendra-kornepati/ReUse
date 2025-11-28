@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,7 @@ fun HomeScreen(
 ) {
     val uiState by genericVm.homeUiState.collectAsState()
     val scope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold(
         topBar = {
@@ -73,7 +75,9 @@ fun HomeScreen(
                     )
                 )
                 Spacer(Modifier.width(8.dp))
-                IconButton(onClick = { if (uiState.query.isNotBlank()) genericVm.fetchReuseIdeas() }, modifier = Modifier.align(Alignment.CenterVertically)) {
+                IconButton(onClick = {
+                    keyboardController?.hide()
+                    if (uiState.query.isNotBlank()) genericVm.fetchReuseIdeas() }, modifier = Modifier.align(Alignment.CenterVertically)) {
                     Icon(Icons.Rounded.Send, contentDescription = "Search")
                 }
             }

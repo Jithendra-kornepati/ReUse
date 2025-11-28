@@ -3,6 +3,7 @@ package uk.ac.tees.mad.reuse
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -10,6 +11,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import uk.ac.tees.mad.reuse.data.local.ReuseIdea
 import uk.ac.tees.mad.reuse.data.repository.GeminiRepository
+import uk.ac.tees.mad.reuse.data.repository.SavedIdeasRepository
 import javax.inject.Inject
 
 data class HomeUiState(
@@ -21,7 +23,9 @@ data class HomeUiState(
 
 @HiltViewModel
 class GenericVm @Inject constructor(
-    private val genericRepo: GeminiRepository
+    private val genericRepo: GeminiRepository,
+    private val savedRepo: SavedIdeasRepository,
+    private val auth: FirebaseAuth
 ) : ViewModel() {
 
     private val _homeUiState = MutableStateFlow(HomeUiState())
@@ -64,11 +68,10 @@ class GenericVm @Inject constructor(
                     if (chunk != null) rawResponse += chunk
                 }
 
-                // Clean possible whitespace or artifacts
                 val cleaned = rawResponse
                     .substringAfter("[")
                     .substringBeforeLast("]")
-                    .let { "[$it]" } // ensure valid JSON array format
+                    .let { "[$it]" }
 
                 val ideas = json.decodeFromString<List<ReuseIdea>>(cleaned)
                 _homeUiState.value = _homeUiState.value.copy(ideas = ideas, isLoading = false)
@@ -91,10 +94,27 @@ class GenericVm @Inject constructor(
     fun saveIdea(idea: ReuseIdea) {
         viewModelScope.launch {
             try {
-                // TODO: Implement Firestore + Room save logic
-                Log.d("GenericVm", "Saved idea: ${idea.title}")
+                val current = _homeUiState.value.ideas.toMutableList()
+                val saved = savedRepo.saveIdeaForCurrentUser(idea)
+                Log.d("GenericVm", "Saved idea to Firestore + Room: ${saved.id}")
             } catch (e: Exception) {
-                Log.e("GenericVm", "Save failed", e)
+                Log.e("GenericVm", "Save failed: ${e.message}", e)
+            }
+        }
+    }
+
+    private suspend fun loadSavedIdeasOnStartup() {
+        val user = .currentUser ?: return
+        savedRepo.fetchAndCacheSavedIdeasForCurrentUser()
+    }
+
+    // You may want an explicit public loader to re-sync on demand
+    fun refreshSavedIdeas() {
+        viewModelScope.launch {
+            try {
+                loadSavedIdeasOnStartup()
+            } catch (e: Exception) {
+                Log.e("GenericVm", "refreshSavedIdeas failed", e)
             }
         }
     }

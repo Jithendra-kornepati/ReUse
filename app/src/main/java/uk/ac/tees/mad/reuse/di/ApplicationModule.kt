@@ -1,4 +1,4 @@
-package uk.ac.tees.mad.reuse.presentation
+package uk.ac.tees.mad.reuse.di
 
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
