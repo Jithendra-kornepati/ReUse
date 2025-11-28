@@ -9,7 +9,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Send
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,8 +46,25 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("ReUse Ideas", style = Typography.titleLarge, color = MaterialTheme.colorScheme.primary) }
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "ReUse Ideas",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                navigationIcon = {
+                    Box(modifier = Modifier.size(48.dp)) 
+                },
+                actions = {
+                    IconButton(onClick = { navController?.navigate(Routes.SaveIdea.route) }) {
+                        Icon(Icons.Rounded.Save, contentDescription = "Save idea")
+                    }
+                    IconButton(onClick = { navController?.navigate(Routes.Splash.route) }) {
+                        Icon(Icons.Rounded.Settings, contentDescription = "Open settings")
+                    }
+                }
             )
         },
         floatingActionButton = {

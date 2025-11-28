@@ -24,12 +24,22 @@ data class HomeUiState(
 @HiltViewModel
 class GenericVm @Inject constructor(
     private val genericRepo: GeminiRepository,
-    private val savedRepo: SavedIdeasRepository,
-    private val auth: FirebaseAuth
+    val savedRepo: SavedIdeasRepository,
+    val auth: FirebaseAuth
 ) : ViewModel() {
 
     private val _homeUiState = MutableStateFlow(HomeUiState())
     val homeUiState = _homeUiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            try {
+                loadSavedIdeasOnStartup()
+            } catch (e: Exception) {
+                Log.w("GenericVm", "Failed to load saved ideas at startup: ${e.message}")
+            }
+        }
+    }
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -104,11 +114,10 @@ class GenericVm @Inject constructor(
     }
 
     private suspend fun loadSavedIdeasOnStartup() {
-        val user = .currentUser ?: return
+        val user = auth.currentUser ?: return
         savedRepo.fetchAndCacheSavedIdeasForCurrentUser()
     }
 
-    // You may want an explicit public loader to re-sync on demand
     fun refreshSavedIdeas() {
         viewModelScope.launch {
             try {

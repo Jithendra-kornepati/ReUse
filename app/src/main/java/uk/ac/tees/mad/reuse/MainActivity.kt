@@ -20,6 +20,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import uk.ac.tees.mad.reuse.data.local.ReuseIdea
 import uk.ac.tees.mad.reuse.presentation.HomeScreen
+import uk.ac.tees.mad.reuse.presentation.SavedIdeasScreen
 import uk.ac.tees.mad.reuse.presentation.auth.AuthScreen
 import uk.ac.tees.mad.reuse.presentation.auth.AuthViewmodel
 import uk.ac.tees.mad.reuse.presentation.detail.ReuseDetailScreen
@@ -48,6 +49,7 @@ sealed class Routes(val route: String) {
     object ReuseDetail : Routes("reuseDetail/{ideaJson}") {
         fun createRoute(ideaJson: String) = "reuseDetail/$ideaJson"
     }
+    object SaveIdea : Routes("saveIdea")
 }
 
 @Composable
@@ -88,7 +90,9 @@ fun ReUseApp() {
                     )
                 }
             }
-
+            composable(Routes.SaveIdea.route) {
+                SavedIdeasScreen(navController = navController)
+            }
         }
     }
 }
