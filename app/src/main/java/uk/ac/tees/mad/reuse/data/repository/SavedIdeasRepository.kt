@@ -57,12 +57,13 @@ class SavedIdeasRepository @Inject constructor(
             }
         }
 
-
+        Log.d("Idea", ideas.toString())
+        dao.clearAll()
         dao.insertAll(ideas)
 
         return ideas
     }
 
 
-    fun observeLocalSavedIdeas(uid: String) = dao.getIdeasByUserFlow(uid)
+    fun observeLocalSavedIdeas(uid: String) = dao.getIdeasByUserFlow()
 }

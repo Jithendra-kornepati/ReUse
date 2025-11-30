@@ -41,7 +41,8 @@ import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun SavedIdeasScreen(
+fun
+        SavedIdeasScreen(
     navController: NavController,
     genericVm: GenericVm = hiltViewModel()
 ) {

@@ -6,11 +6,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Entity(tableName = "reuse_ideas")
 data class ReuseIdea(
-    @PrimaryKey(autoGenerate = true)
-    val key : Int = 1,
+    @PrimaryKey
     val id: String ="",
-    val title: String,
-    val description: String,
-    val steps: List<String>,
+    val title: String = "",
+    val description: String = "",
+    val steps: List<String> = emptyList(),
     val ownerUid: String? = null
 )

@@ -12,8 +12,8 @@ interface ReuseIdeaDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(ideas: List<ReuseIdea>)
 
-    @Query("SELECT * FROM reuse_ideas WHERE ownerUid = :uid ORDER BY title")
-    fun getIdeasByUserFlow(uid: String): Flow<List<ReuseIdea>>
+    @Query("SELECT * FROM reuse_ideas ORDER BY title")
+    fun getIdeasByUserFlow(): Flow<List<ReuseIdea>>
 
     @Query("SELECT * FROM reuse_ideas WHERE ownerUid = :uid ORDER BY title")
     suspend fun getIdeasByUser(uid: String): List<ReuseIdea>

@@ -55,7 +55,7 @@ fun HomeScreen(
                     )
                 },
                 navigationIcon = {
-                    Box(modifier = Modifier.size(48.dp)) 
+                    Box(modifier = Modifier.size(48.dp))
                 },
                 actions = {
                     IconButton(onClick = { navController?.navigate(Routes.SaveIdea.route) }) {
