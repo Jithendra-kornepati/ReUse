@@ -24,6 +24,7 @@ import uk.ac.tees.mad.reuse.presentation.SavedIdeasScreen
 import uk.ac.tees.mad.reuse.presentation.auth.AuthScreen
 import uk.ac.tees.mad.reuse.presentation.auth.AuthViewmodel
 import uk.ac.tees.mad.reuse.presentation.detail.ReuseDetailScreen
+import uk.ac.tees.mad.reuse.presentation.profile.ProfileScreen
 import uk.ac.tees.mad.reuse.presentation.splash.SplashScreen
 import uk.ac.tees.mad.reuse.ui.theme.ReUseTheme
 import java.net.URLDecoder
@@ -50,6 +51,7 @@ sealed class Routes(val route: String) {
         fun createRoute(ideaJson: String) = "reuseDetail/$ideaJson"
     }
     object SaveIdea : Routes("saveIdea")
+    object Profile : Routes("profile")
 }
 
 @Composable
@@ -92,6 +94,9 @@ fun ReUseApp() {
             }
             composable(Routes.SaveIdea.route) {
                 SavedIdeasScreen(navController = navController)
+            }
+            composable(Routes.Profile.route){
+                ProfileScreen(navController = navController)
             }
         }
     }

@@ -62,7 +62,7 @@ fun HomeScreen(
                     IconButton(onClick = { navController?.navigate(Routes.SaveIdea.route) }) {
                         Icon(Icons.Rounded.Save, contentDescription = "Save idea")
                     }
-                    IconButton(onClick = { navController?.navigate(Routes.Splash.route) }) {
+                    IconButton(onClick = { navController?.navigate(Routes.Profile.route) }) {
                         Icon(Icons.Rounded.Settings, contentDescription = "Open settings")
                     }
                 }

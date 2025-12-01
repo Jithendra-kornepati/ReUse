@@ -70,7 +70,7 @@ fun AuthScreen(navController: NavController, vm: AuthViewmodel) {
                 Spacer(modifier = Modifier.height(24.dp))
 
                 if (isLogin) LoginForm(onLogin = { ema, pas ->
-                    vm.loginUser(context = context, email = ema, password = pas, onSucess = {
+                    vm.loginUser(context = context, email = ema, password = pas, onSuccess = {
                         navController.navigate(Routes.Home.route)
                     })
                 }) else SignupForm(onSignup = { fullName, ema, pas ->
@@ -79,7 +79,7 @@ fun AuthScreen(navController: NavController, vm: AuthViewmodel) {
                         fullName = fullName,
                         email = ema,
                         password = pas,
-                        onSucess = {
+                        onSuccess = {
                             navController.navigate(Routes.Home.route)
                         })
                 })

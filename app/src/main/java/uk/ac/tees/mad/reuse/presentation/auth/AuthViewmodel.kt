@@ -1,24 +1,50 @@
 package uk.ac.tees.mad.reuse.presentation.auth
 
 import android.content.Context
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.cloudinary.Cloudinary
+import com.cloudinary.utils.ObjectUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewmodel @Inject constructor(
-    val auth : FirebaseAuth,
-    private val db : FirebaseFirestore
+    val auth: FirebaseAuth,
+    private val db: FirebaseFirestore
 ) : ViewModel() {
 
     val loggedIn = auth.currentUser != null
     val loading = mutableStateOf(false)
+    val uploading = mutableStateOf(false)
+    val uploadProgress = mutableStateOf(0)
+    val uploadError = mutableStateOf<String?>(null)
 
-    fun registerUser(context : Context, fullName : String, email : String, password : String, onSucess: () -> Unit) {
+    private val cloudinary = Cloudinary(
+        ObjectUtils.asMap(
+            "cloud_name", "dn8ycjojw",
+            "api_key", "281678982458183",
+            "api_secret", "77nO2JN3hkGXB-YgGZuJOqXcA4Q"
+        )
+    )
+
+    fun registerUser(
+        context: Context,
+        fullName: String,
+        email: String,
+        password: String,
+        onSuccess: () -> Unit
+    ) {
         loading.value = true
         auth.createUserWithEmailAndPassword(email, password).addOnSuccessListener {
             db.collection("users").document(it.user!!.uid).set(
@@ -29,24 +55,23 @@ class AuthViewmodel @Inject constructor(
                 )
             ).addOnSuccessListener {
                 loading.value = false
-                onSucess()
+                onSuccess()
                 Toast.makeText(context, "User Registered", Toast.LENGTH_SHORT).show()
             }.addOnFailureListener {
                 loading.value = false
                 Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
             }
-            }.addOnFailureListener {
-                loading.value = false
-                Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
-
+        }.addOnFailureListener {
+            loading.value = false
+            Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun loginUser(context : Context, email : String, password : String, onSucess : () -> Unit) {
+    fun loginUser(context: Context, email: String, password: String, onSuccess: () -> Unit) {
         loading.value = true
         auth.signInWithEmailAndPassword(email, password).addOnSuccessListener {
             loading.value = false
-            onSucess()
+            onSuccess()
             Toast.makeText(context, "User Logged In", Toast.LENGTH_SHORT).show()
         }.addOnFailureListener {
             loading.value = false
@@ -54,7 +79,12 @@ class AuthViewmodel @Inject constructor(
         }
     }
 
-    fun updateDisplayName(context: Context, newName: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+    fun updateDisplayName(
+        context: Context,
+        newName: String,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
         val user = auth.currentUser
         if (user == null) {
             onFailure("Not authenticated")
@@ -62,12 +92,9 @@ class AuthViewmodel @Inject constructor(
         }
 
         loading.value = true
-
-        // 1) Update Firestore users document
         db.collection("users").document(user.uid)
             .update("fullName", newName)
             .addOnSuccessListener {
-                // 2) Update FirebaseAuth displayName (optional)
                 val profileUpdates = com.google.firebase.auth.UserProfileChangeRequest.Builder()
                     .setDisplayName(newName)
                     .build()
@@ -109,10 +136,8 @@ class AuthViewmodel @Inject constructor(
 
         loading.value = true
         val uid = user.uid
-
-        val userDocRef = db.collection("users").document(uid)
-
-        userDocRef.delete()
+        db.collection("users").document(uid)
+            .delete()
             .addOnSuccessListener {
                 user.delete()
                     .addOnSuccessListener {
@@ -133,4 +158,57 @@ class AuthViewmodel @Inject constructor(
             }
     }
 
+    fun bitmapToFile(context: Context, bitmap: android.graphics.Bitmap): File {
+        val file = File(context.cacheDir, "profile_${System.currentTimeMillis()}.jpg")
+        FileOutputStream(file).use { out ->
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, out)
+        }
+        return file
+    }
+
+    fun uploadProfileImage(
+        context: Context,
+        imageFile: File,
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        val user = auth.currentUser ?: return onFailure("Not authenticated")
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                uploading.value = true
+                val result = cloudinary.uploader().upload(
+                    imageFile,
+                    ObjectUtils.asMap(
+                        "folder", "reuse_app/${user.uid}/profile",
+                        "overwrite", true,
+                        "public_id", "profile_${System.currentTimeMillis()}"
+                    )
+                )
+                val secureUrl = result["secure_url"] as? String ?: throw Exception("No URL returned")
+
+                // Update Firebase
+                user.updateProfile(
+                    com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                        .setPhotoUri(Uri.parse(secureUrl))
+                        .build()
+                )
+                db.collection("users").document(user.uid)
+                    .update("photoUrl", secureUrl)
+
+                uploading.value = false
+                launch(Dispatchers.Main) {
+                    onSuccess(secureUrl)
+                    Toast.makeText(context, "Profile image updated", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                uploading.value = false
+                launch(Dispatchers.Main) {
+                    uploadError.value = e.message
+                    onFailure(e.message ?: "Upload failed")
+                    Toast.makeText(context, "Upload failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 }
