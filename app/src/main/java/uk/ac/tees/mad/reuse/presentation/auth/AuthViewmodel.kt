@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -30,6 +31,8 @@ class AuthViewmodel @Inject constructor(
     val uploadProgress = mutableStateOf(0)
     val uploadError = mutableStateOf<String?>(null)
 
+    val userName = MutableStateFlow("")
+
     private val cloudinary = Cloudinary(
         ObjectUtils.asMap(
             "cloud_name", "dn8ycjojw",
@@ -37,6 +40,10 @@ class AuthViewmodel @Inject constructor(
             "api_secret", "77nO2JN3hkGXB-YgGZuJOqXcA4Q"
         )
     )
+
+    init {
+        getUserName()
+    }
 
     fun registerUser(
         context: Context,
@@ -125,6 +132,19 @@ class AuthViewmodel @Inject constructor(
         } catch (e: Exception) {
             Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    fun getUserName(){
+        db.collection("users").document(auth.currentUser!!.uid)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    userName.value = document.getString("fullName") ?: ""
+                }
+            }
+            .addOnFailureListener { exception ->
+                userName.value = ""
+            }
     }
 
     fun deleteAccount(context: Context, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
