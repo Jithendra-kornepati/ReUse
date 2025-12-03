@@ -20,6 +20,30 @@ class SavedIdeasRepository @Inject constructor(
         firestore.collection("users").document(uid).collection("savedIdeas")
 
 
+    suspend fun getOneSavedIdea(): ReuseIdea? {
+        val user = auth.currentUser ?: run {
+            Log.w("SavedIdeasRepo", "getOneSavedIdea: no authenticated user")
+            return null
+        }
+
+        val col = userCollectionRef(user.uid)
+
+        return try {
+            val snapshot = col.limit(1).get().await()
+            val doc = snapshot.documents.firstOrNull()
+            if (doc == null) {
+                Log.d("SavedIdeasRepo", "getOneSavedIdea: no saved ideas found")
+                null
+            } else {
+                val idea = doc.toObject(ReuseIdea::class.java)
+                idea?.copy(id = doc.id, ownerUid = user.uid)
+            }
+        } catch (e: Exception) {
+            Log.e("SavedIdeasRepo", "getOneSavedIdea failed: ${e.message}", e)
+            null
+        }
+    }
+
     suspend fun saveIdeaForCurrentUser(idea: ReuseIdea): ReuseIdea {
         val user = auth.currentUser ?: throw IllegalStateException("Not authenticated")
         val uid = user.uid

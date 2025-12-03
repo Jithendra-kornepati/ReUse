@@ -42,7 +42,9 @@ class AuthViewmodel @Inject constructor(
     )
 
     init {
-        getUserName()
+        if (loggedIn) {
+            getUserName()
+        }
     }
 
     fun registerUser(

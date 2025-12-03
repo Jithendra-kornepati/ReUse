@@ -47,7 +47,7 @@ fun ProfileScreen(
     val scope = rememberCoroutineScope()
 
     var editingName by remember { mutableStateOf(false) }
-    val name by authVm.userName.collectAsState()
+    val name by  authVm.userName.collectAsState()
     var displayName by remember { mutableStateOf(name) }
     var nameError by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -70,7 +70,7 @@ fun ProfileScreen(
         } else toastMessage = "Camera capture failed"
     }
     LaunchedEffect(name) {
-        displayName = name         
+        displayName = name
     }
 
     val permissionLauncher =

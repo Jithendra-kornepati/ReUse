@@ -1,6 +1,8 @@
 // HomeScreen.kt
 package uk.ac.tees.mad.reuse.presentation
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -44,6 +46,14 @@ fun HomeScreen(
     val uiState by genericVm.homeUiState.collectAsState()
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted -> }
+
+    LaunchedEffect(Unit) {
+        permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+    }
 
     Scaffold(
         topBar = {

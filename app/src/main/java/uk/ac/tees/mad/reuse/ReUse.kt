@@ -6,22 +6,35 @@ import com.cloudinary.android.Utils
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import uk.ac.tees.mad.reuse.data.AppUtils
+import javax.inject.Inject
 
 @HiltAndroidApp
 class ReUse : Application() {
 
+    @Inject
+    lateinit var appUtils: AppUtils
+    private val appScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
     override fun onCreate() {
         super.onCreate()
-        val scope = CoroutineScope(Dispatchers.IO)
-        scope.launch {
-            sendNotification()
+        appScope.launch {
+            sendDelayedNotification()
         }
     }
-}
 
-suspend fun sendNotification(){
-    delay(10000)
-    Log.d("Notificaation" ,"AA gaya")
+    private suspend fun sendDelayedNotification() {
+        delay(10000L)
+
+        appUtils.sendSavedIdeaNotification()
+    }
+
+    override fun onTerminate() {
+        appScope.cancel()
+        super.onTerminate()
+    }
 }
