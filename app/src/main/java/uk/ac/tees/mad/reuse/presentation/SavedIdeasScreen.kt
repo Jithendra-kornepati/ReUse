@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -76,12 +77,7 @@ fun
             CenterAlignedTopAppBar(
                 title = { Text("Saved Ideas", style = Typography.titleLarge) },
                 actions = {
-                    IconButton(onClick = { /* filter dialog */ }) {
-                        Icon(Icons.Default.FilterList, contentDescription = "Filter")
-                    }
-                    IconButton(onClick = { /* sort dialog */ }) {
-                        Icon(Icons.Default.Sort, contentDescription = "Sort")
-                    }
+                    Icon(Icons.Rounded.ArrowBackIosNew, contentDescription = null)
                 }
             )
         }

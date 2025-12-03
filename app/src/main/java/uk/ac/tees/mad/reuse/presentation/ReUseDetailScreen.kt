@@ -6,7 +6,10 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import uk.ac.tees.mad.reuse.GenericVm
 import uk.ac.tees.mad.reuse.data.local.ReuseIdea
 import uk.ac.tees.mad.reuse.ui.theme.Typography
 
@@ -14,8 +17,10 @@ import uk.ac.tees.mad.reuse.ui.theme.Typography
 @Composable
 fun ReuseDetailScreen(
     idea: ReuseIdea,
+    vm: GenericVm = hiltViewModel(),
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -40,7 +45,7 @@ fun ReuseDetailScreen(
                 Text("${index + 1}. $step", style = Typography.bodyMedium, modifier = Modifier.padding(bottom = 8.dp))
             }
             Spacer(Modifier.weight(1f))
-            Button(onClick = { /* TODO: Save idea */ }, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = { vm.saveIdea(idea,context) }, modifier = Modifier.fillMaxWidth()) {
                 Text("Save")
             }
         }

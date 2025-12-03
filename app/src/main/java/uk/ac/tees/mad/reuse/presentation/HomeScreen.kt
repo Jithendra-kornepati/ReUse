@@ -19,10 +19,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -47,6 +47,7 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val context = LocalContext.current
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted -> }
@@ -126,7 +127,7 @@ fun HomeScreen(
                         items(uiState.ideas) { idea ->
                             ReuseIdeaCard(
                                 idea = idea,
-                                onSave = { genericVm.saveIdea(idea) },
+                                onSave = { genericVm.saveIdea(idea, context) },
                                 onClick = {
                                     val encoded = URLEncoder.encode(Json.encodeToString(idea), StandardCharsets.UTF_8.toString())
                                     navController?.navigate(Routes.ReuseDetail.createRoute(encoded))
@@ -148,7 +149,7 @@ fun HomeScreen(
                         items(uiState.ideas) { idea ->
                             ReuseIdeaCard(
                                 idea = idea,
-                                onSave = { genericVm.saveIdea(idea) },
+                                onSave = { genericVm.saveIdea(idea, context) },
                                 onClick = {
                                     val encoded = URLEncoder.encode(
                                         Json.encodeToString(idea),

@@ -1,13 +1,14 @@
 package uk.ac.tees.mad.reuse
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import uk.ac.tees.mad.reuse.data.local.ReuseIdea
 import uk.ac.tees.mad.reuse.data.repository.GeminiRepository
@@ -101,11 +102,12 @@ class GenericVm @Inject constructor(
         if (_homeUiState.value.query.isNotBlank()) fetchReuseIdeas()
     }
 
-    fun saveIdea(idea: ReuseIdea) {
+    fun saveIdea(idea: ReuseIdea, context: Context) {
         viewModelScope.launch {
             try {
                 val current = _homeUiState.value.ideas.toMutableList()
                 val saved = savedRepo.saveIdeaForCurrentUser(idea)
+                Toast.makeText(context,"Item Saved", Toast.LENGTH_LONG).show()
                 Log.d("GenericVm", "Saved idea to Firestore + Room: ${saved.id}")
             } catch (e: Exception) {
                 Log.e("GenericVm", "Save failed: ${e.message}", e)
