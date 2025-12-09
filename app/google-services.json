@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "781977436539",
-    "project_id": "reuse-4724d",
-    "storage_bucket": "reuse-4724d.firebasestorage.app"
+    "project_number": "1095946705408",
+    "project_id": "reuse-18f10",
+    "storage_bucket": "reuse-18f10.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:781977436539:android:fed5d822d1ecda9136fdde",
+        "mobilesdk_app_id": "1:1095946705408:android:6eef64e8c08f7d917a96e5",
         "android_client_info": {
           "package_name": "uk.ac.tees.mad.reuse"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBJYl0rryD85MoTiXV0HtlzJlFO0zxBZHg"
+          "current_key": "AIzaSyCMe4u6UdG-5Bxtcnvw-NNWwd2Dxxq5Rfc"
         }
       ],
       "services": {

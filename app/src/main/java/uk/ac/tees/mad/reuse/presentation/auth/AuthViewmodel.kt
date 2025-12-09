@@ -35,9 +35,9 @@ class AuthViewmodel @Inject constructor(
 
     private val cloudinary = Cloudinary(
         ObjectUtils.asMap(
-            "cloud_name", "dn8ycjojw",
-            "api_key", "281678982458183",
-            "api_secret", "77nO2JN3hkGXB-YgGZuJOqXcA4Q"
+            "cloud_name", "dhnfw2iw9",
+            "api_key", "665185847697668",
+            "api_secret", "jldEjh8Yi33Y1yL7HjOyFhbDrjU"
         )
     )
 

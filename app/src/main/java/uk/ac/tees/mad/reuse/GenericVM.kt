@@ -57,7 +57,7 @@ class GenericVm @Inject constructor(
 
         viewModelScope.launch {
             _homeUiState.value = _homeUiState.value.copy(isLoading = true, error = null)
-
+            genericRepo.generateTextOutput()
             try {
                 val prompt = """
                     You are a sustainability assistant. 
@@ -83,6 +83,7 @@ class GenericVm @Inject constructor(
                     .substringAfter("[")
                     .substringBeforeLast("]")
                     .let { "[$it]" }
+                Log.d("GenericVm", rawResponse.toString())
 
                 val ideas = json.decodeFromString<List<ReuseIdea>>(cleaned)
                 _homeUiState.value = _homeUiState.value.copy(ideas = ideas, isLoading = false)
