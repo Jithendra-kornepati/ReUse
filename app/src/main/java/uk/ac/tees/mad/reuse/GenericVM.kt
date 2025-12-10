@@ -54,10 +54,9 @@ class GenericVm @Inject constructor(
     fun fetchReuseIdeas() {
         val query = _homeUiState.value.query.trim()
         if (query.isEmpty()) return
-
         viewModelScope.launch {
+            //genericRepo.generateS()
             _homeUiState.value = _homeUiState.value.copy(isLoading = true, error = null)
-            genericRepo.generateTextOutput()
             try {
                 val prompt = """
                     You are a sustainability assistant. 

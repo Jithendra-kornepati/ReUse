@@ -10,9 +10,15 @@ import javax.inject.Inject
 class GeminiRepository @Inject constructor(
 ){
     private val model = GenerativeModel(
-        modelName = "gemini-2.5-flash",
-        apiKey = "AIzaSyD0BAouUuaqrxnuXcFi60MA49SFrigK35s"
+        modelName = "gemini-2.5-flash-lite",
+        apiKey = "AIzaSyD5wN22EOEh1zpVtz7NowyytWtzqAhto7o"
     )
-    
+
+    suspend fun generateS(){
+        val a = model.generateContent("Why are you now working?")
+        a.let {
+            Log.d("Geminis", a.text.toString())
+        }
+    }
     fun generateText(prompt: String): Flow<String?> = model.generateContentStream(prompt).map { it.text }.catch { emit(null) }
 }
